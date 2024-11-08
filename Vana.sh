@@ -62,13 +62,14 @@ function install_vana_node {
 
     echo -e "${BLUE}Устанавливаем Node.js и npm...${NC}"
     curl -fsSL https://fnm.vercel.app/install | bash
+    source ~/.bashrc  # Подгружаем изменения в окружение
     export FNM_DIR="$HOME/.local/share/fnm"
     export PATH="$FNM_DIR:$PATH"
     eval "$(fnm env)"
     fnm install 22
     fnm use 22
     echo -e "${GREEN}Node.js и npm установлены: $(node -v && npm -v)${NC}"
-    
+
     npm install -g yarn
     echo -e "${GREEN}Yarn установлен: $(yarn --version)${NC}"
 
