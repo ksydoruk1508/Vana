@@ -48,33 +48,51 @@ echo -e "${NC}"
 function install_vana_node {
     echo -e "${BLUE}Обновляем систему и устанавливаем необходимые инструменты...${NC}"
     sudo apt-get update -y && sudo apt-get upgrade -y
+    sleep 5
     sudo apt-get install git unzip nano -y
+    sleep 5
     sudo apt-get install software-properties-common -y
+    sleep 5
     sudo add-apt-repository ppa:deadsnakes/ppa -y
+    sleep 5
     sudo apt-get update
+    sleep 5
     sudo apt-get install python3.11 -y
+    sleep 5
     echo -e "${GREEN}Python установлен: $(python3.11 --version)${NC}"
     sudo apt install python3-pip python3-venv curl -y
+    sleep 5
     curl -sSL https://install.python-poetry.org | python3 -
+    sleep 5
     export PATH="$HOME/.local/bin:$PATH"
+    sleep 5
     source ~/.bashrc
+    sleep 5
     echo -e "${GREEN}Poetry установлен: $(poetry --version)${NC}"
 
     echo -e "${BLUE}Устанавливаем Node.js и npm...${NC}"
     curl -fsSL https://fnm.vercel.app/install | bash
+    sleep 5
     source ~/.bashrc
+    sleep 5
     fnm use --install-if-missing 22
+    sleep 5
     echo -e "${GREEN}Node.js и npm установлены: $(node -v && npm -v)${NC}"
     sudo apt-get install nodejs -y
+    sleep 5
     npm install -g yarn
+    sleep 5
     echo -e "${GREEN}Yarn установлен: $(yarn --version)${NC}"
 
     echo -e "${BLUE}Клонируем репозиторий и заходим в него...${NC}"
     git clone https://github.com/vana-com/vana-dlp-chatgpt.git
+    sleep 5
     cd vana-dlp-chatgpt || exit
+    sleep 5
     cp .env.example .env
     echo -e "${BLUE}Устанавливаем зависимости...${NC}"
     poetry install
+    sleep 5
     echo -e "${BLUE}Устанавливаем CLI...${NC}"
     pip install vana
     echo -e "${GREEN}Установка ноды Vana завершена!${NC}"
