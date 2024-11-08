@@ -61,7 +61,7 @@ function create_and_export_wallet_keys {
         2)
             echo -e "${YELLOW}Введите ваш приватный ключ или мнемонику Coldkey:${NC}"
             vanacli wallet regen_coldkey --wallet.name default
-            echo -e "${YELLOW}Введите ваш приватный ключ или мнемонику Hotkey:${NC}"
+            echo -e "${YELLOW}Введите имя, а затем ваш приватный ключ или мнемонику Hotkey:${NC}"
             vanacli wallet regen_hotkey --wallet.name default
             echo -e "${GREEN}Ключи успешно импортированы!${NC}"
             ;;
