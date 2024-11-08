@@ -46,11 +46,32 @@ function install_vana_node {
 
 # Создание кошелька и экспорт приватных ключей
 function create_and_export_wallet_keys {
-    echo -e "${BLUE}Создаем кошелек...${NC}"
-    vanacli wallet create --wallet.name default --wallet.hotkey default
-    echo -e "${BLUE}Экспортируем приватные ключи...${NC}"
-    vanacli wallet export_private_key --wallet.name default --key.type coldkey --accept-risk yes
-    vanacli wallet export_private_key --wallet.name default --key.type hotkey --accept-risk yes
+    echo -e "${BLUE}Выберите способ работы с кошельком:${NC}"
+    echo -e "${CYAN}1. Создать новый кошелек${NC}"
+    echo -e "${CYAN}2. Импортировать существующие ключи${NC}"
+    read -r wallet_choice
+    case $wallet_choice in
+        1)
+            echo -e "${BLUE}Создаем кошелек...${NC}"
+            vanacli wallet create --wallet.name default --wallet.hotkey default
+            echo -e "${BLUE}Экспортируем приватные ключи...${NC}"
+            vanacli wallet export_private_key --wallet.name default --key.type coldkey --accept-risk yes
+            vanacli wallet export_private_key --wallet.name default --key.type hotkey --accept-risk yes
+            ;;
+        2)
+            echo -e "${YELLOW}Введите ваш приватный ключ Coldkey:${NC}"
+            read -r coldkey_private_key
+            echo -e "${YELLOW}Введите ваш приватный ключ Hotkey:${NC}"
+            read -r hotkey_private_key
+            vanacli wallet import_private_key --wallet.name default --key.type coldkey --private-key "$coldkey_private_key"
+            vanacli wallet import_private_key --wallet.name default --key.type hotkey --private-key "$hotkey_private_key"
+            echo -e "${GREEN}Ключи успешно импортированы!${NC}"
+            ;;
+        *)
+            echo -e "${RED}Неверный выбор, попробуйте снова.${NC}"
+            create_and_export_wallet_keys
+            ;;
+    esac
 }
 
 # Генерация ключей для валидатора
@@ -113,17 +134,35 @@ EOF
     sudo systemctl status vana.service
 }
 
+# Удаление ноды Vana
+function remove_vana_node {
+    echo -e "${BLUE}Удаление ноды Vana...${NC}"
+    if [ -d "$HOME/vana-dlp-chatgpt" ]; then
+        cd $HOME/vana-dlp-chatgpt || exit
+        sudo systemctl stop vana.service
+        sudo systemctl disable vana.service
+        sudo rm /etc/systemd/system/vana.service
+        sudo systemctl daemon-reload
+        cd $HOME
+        rm -rf vana-dlp-chatgpt
+        echo -e "${GREEN}Нода Vana успешно удалена!${NC}"
+    else
+        echo -e "${RED}Нода Vana не найдена.${NC}"
+    fi
+}
+
 # Главное меню
 function main_menu {
     while true; do
         echo -e "${YELLOW}Выберите действие:${NC}"
         echo -e "${CYAN}1. Установка ноды Vana${NC}"
-        echo -e "${CYAN}2. Создание кошелька и экспорт ключей${NC}"
+        echo -e "${CYAN}2. Создание или импорт кошелька и ключей${NC}"
         echo -e "${CYAN}3. Генерация ключей валидатора${NC}"
         echo -e "${CYAN}4. Деплой смарт-контракта DLP${NC}"
         echo -e "${CYAN}5. Установка валидатора${NC}"
         echo -e "${CYAN}6. Создание сервиса валидатора${NC}"
-        echo -e "${CYAN}7. Выход${NC}"
+        echo -e "${CYAN}7. Удаление ноды Vana${NC}"
+        echo -e "${CYAN}8. Выход${NC}"
        
         echo -e "${YELLOW}Введите номер действия:${NC} "
         read -r choice
@@ -134,7 +173,8 @@ function main_menu {
             4) deploy_smart_contract ;;
             5) install_validator ;;
             6) create_validator_service ;;
-            7) break ;;
+            7) remove_vana_node ;;
+            8) break ;;
             *) echo -e "${RED}Неверный выбор, попробуйте снова.${NC}" ;;
         esac
     done
