@@ -64,7 +64,10 @@ function install_vana_node {
     curl -fsSL https://fnm.vercel.app/install | bash
     export FNM_DIR="$HOME/.fnm"
     export PATH="$FNM_DIR:$PATH"
+    source ~/.bashrc
     eval "$(fnm env)"
+    fnm install 22
+    fnm use 22
     fnm install 22
     fnm use 22
     echo -e "${GREEN}Node.js и npm установлены: $(node -v && npm -v)${NC}"
