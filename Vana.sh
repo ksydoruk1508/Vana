@@ -171,7 +171,7 @@ function main_menu {
         echo -e "${CYAN}4. Деплой смарт-контракта DLP${NC}"
         echo -e "${CYAN}5. Вытягивание публичного ключа${NC}"
         echo -e "${CYAN}6. Регистрация и запуск валидатора${NC}"
-        echo -e "${CYAN}6. Создание сервиса валидатора${NC}"
+        echo -e "${CYAN}7. Создание сервиса валидатора${NC}"
         echo -e "${CYAN}7. Удаление ноды Vana${NC}"
         echo -e "${CYAN}8. Выход${NC}"
        
@@ -184,7 +184,7 @@ function main_menu {
             4) deploy_smart_contract ;;
             5) extract_public_key ;;
             6) register_and_start_validator ;;
-            6) create_validator_service ;;
+            7) create_validator_service ;;
             7) remove_vana_node ;;
             8) break ;;
             *) echo -e "${RED}Неверный выбор, попробуйте снова.${NC}" ;;
