@@ -219,7 +219,7 @@ function main_menu {
         echo -e "${CYAN}9. Просмотр логов${NC}"
         echo -e "${CYAN}10. Выход${NC}"
 
-        echo -e "${PURPLE}Ссылка на текстовый гайд: https://teletype.in/@c6zr7/ICN_node${NC} "
+        echo -e "${PURPLE}Ссылка на текстовый гайд: https://teletype.in/@c6zr7/VanaNode${NC} "
     
         echo -e "${YELLOW}Введите номер действия:${NC} "
         read -r choice
