@@ -172,8 +172,8 @@ function main_menu {
         echo -e "${CYAN}5. Вытягивание публичного ключа${NC}"
         echo -e "${CYAN}6. Регистрация и запуск валидатора${NC}"
         echo -e "${CYAN}7. Создание сервиса валидатора${NC}"
-        echo -e "${CYAN}7. Удаление ноды Vana${NC}"
-        echo -e "${CYAN}8. Выход${NC}"
+        echo -e "${CYAN}8. Удаление ноды Vana${NC}"
+        echo -e "${CYAN}9. Выход${NC}"
        
         echo -e "${YELLOW}Введите номер действия:${NC} "
         read -r choice
@@ -185,8 +185,8 @@ function main_menu {
             5) extract_public_key ;;
             6) register_and_start_validator ;;
             7) create_validator_service ;;
-            7) remove_vana_node ;;
-            8) break ;;
+            8) remove_vana_node ;;
+            9) break ;;
             *) echo -e "${RED}Неверный выбор, попробуйте снова.${NC}" ;;
         esac
     done
