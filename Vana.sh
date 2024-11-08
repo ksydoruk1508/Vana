@@ -75,7 +75,9 @@ function create_and_export_wallet_keys {
 # Генерация ключей для валидатора
 function generate_keys {
     echo -e "${BLUE}Генерация ключей для валидатора...${NC}"
+    cd vana-dlp-chatgpt
     ./keygen.sh
+    cd $HOME
 }
 
 # Деплой смарт-контракта DLP
