@@ -105,6 +105,10 @@ function extract_public_key {
 # Регистрация и запуск валидатора
 function register_and_start_validator {    
     cd $HOME
+    sudo apt install python3-pip python3-venv curl -y
+    curl -sSL https://install.python-poetry.org | python3 -
+    export PATH="$HOME/.local/bin:$PATH"
+    source ~/.bashrc
     cd vana-dlp-chatgpt
     nano .env
     echo -e "${BLUE}Регистрируем валидатора...${NC}"
@@ -113,7 +117,7 @@ function register_and_start_validator {
     read -r validator_address
     ./vanacli dlp approve_validator --validator_address=$validator_address
     echo -e "${BLUE}Запускаем валидатор...${NC}"
-    export PATH="$HOME/.local/bin:$PATH" && export PATH="$HOME/.local/bin:$PATH" && source ~/.bashrc && poetry run python -m chatgpt.nodes.validator
+    poetry run python -m chatgpt.nodes.validator
     echo -e "${GREEN}Валидатор успешно зарегистрирован и запущен!${NC}"
 }
 
