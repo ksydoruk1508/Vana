@@ -103,7 +103,8 @@ function extract_public_key {
 }
 
 # Регистрация и запуск валидатора
-function register_and_start_validator {    cd $HOME
+function register_and_start_validator {    
+    cd $HOME
     cd vana-dlp-chatgpt
     nano .env
     echo -e "${BLUE}Регистрируем валидатора...${NC}"
