@@ -1,99 +1,141 @@
 #!/bin/bash
 
-function install_node {
-    echo "Updating and upgrading system packages..."
-    sudo apt-get update -y && sudo apt upgrade -y
-    echo "Installing dependencies..."
-    sudo apt-get install make screen build-essential unzip lz4 gcc git jq -y
+# Цвета текста
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # Нет цвета (сброс цвета)
 
-    echo "Installing Go..."
-    sudo rm -rf /usr/local/go
-    curl -Ls https://go.dev/dl/go1.22.4.linux-amd64.tar.gz | sudo tar -xzf - -C /usr/local
-    eval $(echo 'export PATH=$PATH:/usr/local/go/bin' | sudo tee /etc/profile.d/golang.sh)
-    eval $(echo 'export PATH=$PATH:$HOME/go/bin' | tee -a $HOME/.profile)
-
-    echo "Downloading project repository..."
-    wget https://github.com/hemilabs/heminetwork/releases/download/v0.5.0/heminetwork_v0.5.0_linux_amd64.tar.gz
-    tar -xvf heminetwork_v0.5.0_linux_amd64.tar.gz
-    rm -rf heminetwork_v0.5.0_linux_amd64.tar.gz
-    cd heminetwork_v0.5.0_linux_amd64/
-
-    echo "Creating wallet..."
-    ./keygen -secp256k1 -json -net="testnet" > /root/heminetwork_v0.5.0_linux_amd64/popm-address.json
-    cat popm-address.json
-    echo "Save the above file and its data - this is your wallet!"
-
-    read -p "Enter your private key: " PRIVATE_KEY
-    echo "export POPM_PRIVATE_KEY=$PRIVATE_KEY" >> ~/.bashrc
-    echo "export POPM_STATIC_FEE=5000" >> ~/.bashrc
-    echo "export POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public" >> ~/.bashrc
+# Установка ноды Vana
+function install_vana_node {
+    echo -e "${BLUE}Обновляем систему и устанавливаем необходимые инструменты...${NC}"
+    sudo apt-get update -y && sudo apt-get upgrade -y
+    sudo apt-get install git unzip nano -y
+    sudo apt-get install software-properties-common -y
+    sudo add-apt-repository ppa:deadsnakes/ppa -y
+    sudo apt-get update
+    sudo apt-get install python3.11 -y
+    echo -e "${GREEN}Python установлен: $(python3.11 --version)${NC}"
+    sudo apt install python3-pip python3-venv curl -y
+    curl -sSL https://install.python-poetry.org | python3 -
+    export PATH="$HOME/.local/bin:$PATH"
     source ~/.bashrc
+    echo -e "${GREEN}Poetry установлен: $(poetry --version)${NC}"
 
-    echo "Creating service file..."
-    sudo tee /etc/systemd/system/hemid.service > /dev/null <<EOF
+    echo -e "${BLUE}Устанавливаем Node.js и npm...${NC}"
+    curl -fsSL https://fnm.vercel.app/install | bash
+    source ~/.bashrc
+    fnm use --install-if-missing 22
+    echo -e "${GREEN}Node.js и npm установлены: $(node -v && npm -v)${NC}"
+    sudo apt-get install nodejs -y
+    npm install -g yarn
+    echo -e "${GREEN}Yarn установлен: $(yarn --version)${NC}"
+
+    echo -e "${BLUE}Клонируем репозиторий и заходим в него...${NC}"
+    git clone https://github.com/vana-com/vana-dlp-chatgpt.git
+    cd vana-dlp-chatgpt || exit
+    cp .env.example .env
+    echo -e "${BLUE}Устанавливаем зависимости...${NC}"
+    poetry install
+    echo -e "${BLUE}Устанавливаем CLI...${NC}"
+    pip install vana
+    echo -e "${GREEN}Установка ноды Vana завершена!${NC}"
+}
+
+# Создание кошелька и экспорт приватных ключей
+function create_and_export_wallet_keys {
+    echo -e "${BLUE}Создаем кошелек...${NC}"
+    vanacli wallet create --wallet.name default --wallet.hotkey default
+    echo -e "${BLUE}Экспортируем приватные ключи...${NC}"
+    vanacli wallet export_private_key --wallet.name default --key.type coldkey --accept-risk yes
+    vanacli wallet export_private_key --wallet.name default --key.type hotkey --accept-risk yes
+}
+
+# Генерация ключей для валидатора
+function generate_keys {
+    echo -e "${BLUE}Генерация ключей для валидатора...${NC}"
+    ./keygen.sh
+}
+
+# Деплой смарт-контракта DLP
+function deploy_smart_contract {
+    echo -e "${BLUE}Удаляем старую папку для деплоя и скачиваем новую...${NC}"
+    cd $HOME
+    rm -rf vana-dlp-smart-contracts
+    git clone https://github.com/Josephtran102/vana-dlp-smart-contracts
+    cd vana-dlp-smart-contracts || exit
+    npm install -g yarn
+    yarn install
+    cp .env.example .env
+    nano .env
+    echo -e "${BLUE}Деплоим контракт...${NC}"
+    npx hardhat deploy --network moksha --tags DLPDeploy
+}
+
+# Установка валидатора
+function install_validator {
+    echo -e "${BLUE}Регистрируем валидатора...${NC}"
+    ./vanacli dlp register_validator --stake_amount 10
+    ./vanacli dlp approve_validator --validator_address=<ВАШ_АДРЕС_КОШЕЛЬКА_HOTKEY>
+    echo -e "${BLUE}Запускаем валидатор...${NC}"
+    poetry run python -m chatgpt.nodes.validator
+}
+
+# Создание и запуск сервиса для валидатора
+function create_validator_service {
+    echo -e "${BLUE}Создаем сервисный файл для валидатора...${NC}"
+    SERVICE_PATH=$(which poetry)
+    sudo tee /etc/systemd/system/vana.service << EOF
 [Unit]
-Description=Hemi
+Description=Vana Validator Service
 After=network.target
 
 [Service]
-User=$USER
-Environment="POPM_BTC_PRIVKEY=$POPM_PRIVATE_KEY"
-Environment="POPM_STATIC_FEE=5000"
-Environment="POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public"
-WorkingDirectory=/root/heminetwork_v0.5.0_linux_amd64
-ExecStart=/root/heminetwork_v0.5.0_linux_amd64/popmd
+Type=simple
+User=root
+WorkingDirectory=/root/vana-dlp-chatgpt
+ExecStart=${SERVICE_PATH} run python -m chatgpt.nodes.validator
 Restart=on-failure
 RestartSec=10
-LimitNOFILE=65535
+Environment=PATH=/root/.local/bin:/usr/local/bin:/usr/bin:/bin:/root/vana-dlp-chatgpt/myenv/bin
+Environment=PYTHONPATH=/root/vana-dlp-chatgpt
 
 [Install]
 WantedBy=multi-user.target
 EOF
-
-    echo "Starting service..."
-    sudo systemctl enable hemid
     sudo systemctl daemon-reload
-    sudo systemctl start hemid
-    echo "Node installation complete."
+    sudo systemctl enable vana.service
+    sudo systemctl start vana.service
+    sudo systemctl status vana.service
 }
 
-function change_port {
-    read -p "Enter new port number: " NEW_PORT
-    sudo sed -i "s/Environment=\"POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network\/v1\/ws\/public\"/Environment=\"POPM_BFG_URL=wss:\/\/testnet\.rpc\.hemi\.network:\$NEW_PORT\/v1\/ws\/public\"/g" /etc/systemd/system/hemid.service
-    sudo systemctl daemon-reload
-    sudo systemctl restart hemid
-    echo "Port changed to $NEW_PORT."
+# Главное меню
+function main_menu {
+    while true; do
+        echo -e "${YELLOW}Выберите действие:${NC}"
+        echo -e "${CYAN}1. Установка ноды Vana${NC}"
+        echo -e "${CYAN}2. Создание кошелька и экспорт ключей${NC}"
+        echo -e "${CYAN}3. Генерация ключей валидатора${NC}"
+        echo -e "${CYAN}4. Деплой смарт-контракта DLP${NC}"
+        echo -e "${CYAN}5. Установка валидатора${NC}"
+        echo -e "${CYAN}6. Создание сервиса валидатора${NC}"
+        echo -e "${CYAN}7. Выход${NC}"
+       
+        echo -e "${YELLOW}Введите номер действия:${NC} "
+        read -r choice
+        case $choice in
+            1) install_vana_node ;;
+            2) create_and_export_wallet_keys ;;
+            3) generate_keys ;;
+            4) deploy_smart_contract ;;
+            5) install_validator ;;
+            6) create_validator_service ;;
+            7) break ;;
+            *) echo -e "${RED}Неверный выбор, попробуйте снова.${NC}" ;;
+        esac
+    done
 }
 
-function remove_node {
-    echo "Stopping and disabling service..."
-    sudo systemctl stop hemid
-    sudo systemctl disable hemid
-    sudo rm /etc/systemd/system/hemid.service
-    sudo systemctl daemon-reload
-    echo "Removing node files..."
-    rm -rf /root/heminetwork_v0.5.0_linux_amd64
-    echo "Node removed successfully."
-}
-
-PS3="Please select an option: "
-options=("Install Node" "Change Port" "Remove Node" "Exit")
-select opt in "${options[@]}"; do
-    case $opt in
-        "Install Node")
-            install_node
-            ;;
-        "Change Port")
-            change_port
-            ;;
-        "Remove Node")
-            remove_node
-            ;;
-        "Exit")
-            break
-            ;;
-        *)
-            echo "Invalid option $REPLY"
-            ;;
-    esac
-done
+main_menu
