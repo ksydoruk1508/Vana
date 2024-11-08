@@ -99,7 +99,7 @@ function deploy_smart_contract {
 function extract_public_key {
     echo -e "${BLUE}Вытягиваем публичный ключ. Весь этот огромный вывод сохраните в надежное место${NC}"
     cat /root/vana-dlp-chatgpt/public_key_base64.asc
-    echo -e "${GREEN}Публичный ключ успешно вытянут!${NC}"
+    echo -e "${GREEN}Публичный ключ - сохранить в надежное место!${NC}"
 }
 
 # Регистрация и запуск валидатора
