@@ -95,11 +95,15 @@ function deploy_smart_contract {
     npx hardhat deploy --network moksha --tags DLPDeploy
 }
 
-# Установка валидатора
-function install_validator {
+# Вытягивание публичного ключа
+function extract_public_key {
     echo -e "${BLUE}Вытягиваем публичный ключ. Весь этот огромный вывод сохраните в надежное место${NC}"
     cat /root/vana-dlp-chatgpt/public_key_base64.asc
-    cd $HOME
+    echo -e "${GREEN}Публичный ключ успешно вытянут!${NC}"
+}
+
+# Регистрация и запуск валидатора
+function register_and_start_validator {    cd $HOME
     cd vana-dlp-chatgpt
     nano .env
     echo -e "${BLUE}Регистрируем валидатора...${NC}"
@@ -109,6 +113,7 @@ function install_validator {
     ./vanacli dlp approve_validator --validator_address=$validator_address
     echo -e "${BLUE}Запускаем валидатор...${NC}"
     poetry run python -m chatgpt.nodes.validator
+    echo -e "${GREEN}Валидатор успешно зарегистрирован и запущен!${NC}"
 }
 
 # Создание и запуск сервиса для валидатора
@@ -164,7 +169,8 @@ function main_menu {
         echo -e "${CYAN}2. Создание или импорт кошелька и ключей${NC}"
         echo -e "${CYAN}3. Генерация ключей валидатора${NC}"
         echo -e "${CYAN}4. Деплой смарт-контракта DLP${NC}"
-        echo -e "${CYAN}5. Установка валидатора${NC}"
+        echo -e "${CYAN}5. Вытягивание публичного ключа${NC}"
+        echo -e "${CYAN}6. Регистрация и запуск валидатора${NC}"
         echo -e "${CYAN}6. Создание сервиса валидатора${NC}"
         echo -e "${CYAN}7. Удаление ноды Vana${NC}"
         echo -e "${CYAN}8. Выход${NC}"
@@ -176,7 +182,8 @@ function main_menu {
             2) create_and_export_wallet_keys ;;
             3) generate_keys ;;
             4) deploy_smart_contract ;;
-            5) install_validator ;;
+            5) extract_public_key ;;
+            6) register_and_start_validator ;;
             6) create_validator_service ;;
             7) remove_vana_node ;;
             8) break ;;
