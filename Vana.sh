@@ -78,7 +78,9 @@ function deploy_smart_contract {
 function install_validator {
     echo -e "${BLUE}Регистрируем валидатора...${NC}"
     ./vanacli dlp register_validator --stake_amount 10
-    ./vanacli dlp approve_validator --validator_address=<ВАШ_АДРЕС_КОШЕЛЬКА_HOTKEY>
+    echo -e "${YELLOW}Введите ваш адрес кошелька Hotkey:${NC}"
+    read -r validator_address
+    ./vanacli dlp approve_validator --validator_address=$validator_address
     echo -e "${BLUE}Запускаем валидатор...${NC}"
     poetry run python -m chatgpt.nodes.validator
 }
