@@ -113,13 +113,14 @@ function register_and_start_validator {
     read -r validator_address
     ./vanacli dlp approve_validator --validator_address=$validator_address
     echo -e "${BLUE}Запускаем валидатор...${NC}"
-    poetry run python -m chatgpt.nodes.validator
+    export PATH="$HOME/.local/bin:$PATH" && poetry run python -m chatgpt.nodes.validator
     echo -e "${GREEN}Валидатор успешно зарегистрирован и запущен!${NC}"
 }
 
 # Создание и запуск сервиса для валидатора
 function create_validator_service {
     echo -e "${BLUE}Создаем сервисный файл для валидатора...${NC}"
+    export PATH="$HOME/.local/bin:$PATH"
     SERVICE_PATH=$(which poetry)
     sudo tee /etc/systemd/system/vana.service << EOF
 [Unit]
