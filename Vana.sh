@@ -97,6 +97,11 @@ function deploy_smart_contract {
 
 # Установка валидатора
 function install_validator {
+    echo -e "${BLUE}Вытягиваем публичный ключ. Весь этот огромный вывод сохраните в надежное место${NC}"
+    cat /root/vana-dlp-chatgpt/public_key_base64.asc
+    cd $HOME
+    cd vana-dlp-chatgpt
+    nano .env
     echo -e "${BLUE}Регистрируем валидатора...${NC}"
     ./vanacli dlp register_validator --stake_amount 10
     echo -e "${YELLOW}Введите ваш адрес кошелька Hotkey:${NC}"
