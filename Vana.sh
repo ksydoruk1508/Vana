@@ -63,8 +63,8 @@ function create_and_export_wallet_keys {
             read -r coldkey_private_key
             echo -e "${YELLOW}Введите ваш приватный ключ Hotkey:${NC}"
             read -r hotkey_private_key
-            vanacli wallet import_private_key --wallet.name default --key.type coldkey --private-key "$coldkey_private_key"
-            vanacli wallet import_private_key --wallet.name default --key.type hotkey --private-key "$hotkey_private_key"
+            vanacli wallet regen_coldkey --wallet.name default --private-key "$coldkey_private_key"
+            vanacli wallet regen_hotkey --wallet.name default --mnemonic "$hotkey_private_key"
             echo -e "${GREEN}Ключи успешно импортированы!${NC}"
             ;;
         *)
